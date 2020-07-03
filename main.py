@@ -70,10 +70,10 @@ class Player(object):
         self.hp = 100
         self.balance=0
         if type == 'player':
-            self.actor = Actor('player1_block')
+            self.actor = Actor('left')
             self.actor.bottomleft = (0, HEIGHT)
         if type == 'enemy':
-            self.actor = Actor('player2_block')
+            self.actor = Actor('right')
             self.actor.bottomright = (WIDTH, HEIGHT)
         
         # 上次攻击和防御的时间
@@ -138,6 +138,7 @@ def draw():
         screen.clear()
         screen.blit("start",(0,0))
         if(bgmflag):
+            pygame.mixer.music.load(".\sounds\startbgm.mp3")
             pygame.mixer.music.play()
             bgmflag=False
 
@@ -167,7 +168,12 @@ def draw():
             screen.draw.filled_rect(Rect((1280 - 25 - 460 * player2.balance / 100-40, 65), (40+460 * player2.balance / 100, 30)), (255, 255-55*player1.balance/100, 20))
         screen.draw.text(str(player2.hp), (1280 - 60, 20))
         screen.draw.text(str(player2.balance), (1280-60, 70),color='black')
-
+        if player1.actor.bottomleft<=player2.actor.bottomright:
+            player1.actor.image='left'
+            player2.actor.image='right'
+        else:
+            player1.actor.image='right'
+            player2.actor.image='left'
         player1.actor.draw()
         player2.actor.draw()
 
