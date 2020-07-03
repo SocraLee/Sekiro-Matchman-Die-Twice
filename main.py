@@ -4,6 +4,8 @@ import time
 WIDTH = 1280
 HEIGHT = 720
 
+eps = 1e-6
+
 player1_key = {
     keys.J: 'atk',
     keys.S: 'def',
@@ -12,7 +14,35 @@ player1_key = {
     keys.D: 'right',
 }
 
+class Button(object):
+
+    def __init__(self, pos, color, text):
+        self.pos = pos
+        self.color = color
+        self.text = text
+
+    def paint(self):
+        screen.draw.filled_rect(Rect(self.pos[0], self.pos[1]), self.color)
+        screen.draw.text(self.text, self.pos[0])
+
+    # 判断p是否在按钮内
+    def in_button(self, p):
+        return self.pos[0][0] <= p[0] <= self.pos[1][0] and self.pos[0][1] <= p[1] <= self.pos[1][1]
+
+button = {
+    'start': {
+    },
+    'setting': {
+    },
+    'battle': {
+    },
+    'battle_end': {
+        'Back': Button(((WIDTH / 2 - 30, HEIGHT * 2 / 3 - 15), (WIDTH / 2 + 30, HEIGHT * 2 / 3 + 15)), (255, 0, 0), 'Back'),
+    },
+}
+
 now_pressed_key = set()
+now_pressed_button = None
 
 now_page = 'battle'
 
@@ -71,10 +101,10 @@ class Player(object):
         self.actor.left = max(self.actor.left, 0)
 
     def is_attacking(self):
-        return time.time() - self.atk_last > 0.5 and 'atk' in self.get_action()
+        return time.time() - self.atk_last > 0.2 and 'atk' in self.get_action()
 
     def is_defending(self):
-        return time.time() - self.def_last > 0.5 and 'def' in self.get_action()
+        return time.time() - self.def_last > 0.2 and 'def' in self.get_action()
 
 player1 = Player('player')
 player2 = Player('enemy')
@@ -84,28 +114,39 @@ def draw():
         screen.clear()
         screen.fill((0, 0, 0))
 
+    if now_page == 'setting':
+        screen.clear()
+        screen.fill((0, 0, 0))
+
     if now_page == 'battle':
         screen.clear()
         screen.fill((0, 0, 0))
 
         screen.draw.filled_rect(Rect((20, 10), (500, 50)), (0, 0, 0))
         screen.draw.filled_rect(Rect((25, 15), (495, 45)), (255, 255, 255))
-        if player1.hp >= 1e-6:
+        if player1.hp >= eps:
             screen.draw.filled_rect(Rect((25, 15), ((495 - 25) * player1.hp / 100 + 25, 45)), (255, 0, 0))
         screen.draw.text(str(player1.hp), (30, 20))
 
         screen.draw.filled_rect(Rect((1280 - 500, 10), (1280 - 20, 50)), (0, 0, 0))
         screen.draw.filled_rect(Rect((1280 - 495, 15), (1280 - 25, 45)), (255, 255, 255))
-        if player2.hp >= 1e-6:
+        if player2.hp >= eps:
             screen.draw.filled_rect(Rect((1280 - 25 - (495 - 25) * player2.hp / 100, 15), (1280 - 25, 45)), (255, 0, 0))
         screen.draw.text(str(player2.hp), (1280 - 45, 20))
 
         player1.actor.draw()
         player2.actor.draw()
 
-    if now_page == 'setting':
+    if now_page == 'battle_end':
         screen.clear()
         screen.fill((0, 0, 0))
+        if player2.hp < eps:
+            screen.draw.text('player1 win', (WIDTH / 2, HEIGHT / 2))
+        else:
+            screen.draw.text('player2 win', (WIDTH / 2, HEIGHT / 2))
+    
+    for i, j in button[now_page].items():
+        j.paint()
 
 def attack(u, v):
     if u.actor.colliderect(v.actor):
@@ -118,22 +159,36 @@ def attack_defended(u, v):
         u.atk_last = time.time()
 
 def update():
-    player1.pos_update()
-    player2.pos_update()
+    global now_page, now_pressed_button
 
-    if player1.is_attacking() and not player2.is_defending():
-        attack(player1, player2)
-    if player1.is_attacking() and player2.is_defending():
-        attack_defended(player1, player2)
+    if now_page == 'battle':
+        player1.pos_update()
+        player2.pos_update()
 
-    if player2.is_attacking() and not player1.is_defending():
-        attack(player2, player1)
-    if player2.is_attacking() and player1.is_defending():
-        attack_defended(player2, player1)
+        if player1.is_attacking() and not player2.is_defending():
+            attack(player1, player2)
+        if player1.is_attacking() and player2.is_defending():
+            attack_defended(player1, player2)
 
+        if player2.is_attacking() and not player1.is_defending():
+            attack(player2, player1)
+        if player2.is_attacking() and player1.is_defending():
+            attack_defended(player2, player1)
+
+        if player1.hp < eps or player2.hp < eps:
+            now_page = 'battle_end'
+
+    if now_page == 'battle_end':
+        if now_pressed_button == 'Back':
+            now_page = 'start'
+            now_pressed_button = None
 
 def on_mouse_down(pos):
-    pass
+    global now_pressed_button
+
+    for i, j in button[now_page].items():
+        if j.in_button(pos):
+            now_pressed_button = i
 
 def on_key_down(key):
     now_pressed_key.add(key)
