@@ -27,7 +27,7 @@ class Button(object):
 
     # 判断p是否在按钮内
     def in_button(self, p):
-        return self.pos[0][0] <= p[0] <= self.pos[1][0] and self.pos[0][1] <= p[1] <= self.pos[1][1]
+        return 0 <= p[0] - self.pos[0][0] <= self.pos[1][0] and 0 <= p[1] - self.pos[0][1] <= self.pos[1][1]
 
 button = {
     'start': {
@@ -37,7 +37,7 @@ button = {
     'battle': {
     },
     'battle_end': {
-        'Back': Button(((WIDTH / 2 - 30, HEIGHT * 2 / 3 - 15), (WIDTH / 2 + 30, HEIGHT * 2 / 3 + 15)), (255, 0, 0), 'Back'),
+        'Back': Button(((WIDTH / 2 - 30, HEIGHT * 2 / 3 - 15), (60, 30)), (255, 0, 0), 'Back'),
     },
 }
 
@@ -122,17 +122,15 @@ def draw():
         screen.clear()
         screen.fill((0, 0, 0))
 
-        screen.draw.filled_rect(Rect((20, 10), (500, 50)), (0, 0, 0))
-        screen.draw.filled_rect(Rect((25, 15), (495, 45)), (255, 255, 255))
+        screen.draw.filled_rect(Rect((25, 15), (500, 50)), (255, 255, 255))
         if player1.hp >= eps:
-            screen.draw.filled_rect(Rect((25, 15), ((495 - 25) * player1.hp / 100 + 25, 45)), (255, 0, 0))
+            screen.draw.filled_rect(Rect((25, 15), (500 * player1.hp / 100, 50)), (255, 0, 0))
         screen.draw.text(str(player1.hp), (30, 20))
 
-        screen.draw.filled_rect(Rect((1280 - 500, 10), (1280 - 20, 50)), (0, 0, 0))
-        screen.draw.filled_rect(Rect((1280 - 495, 15), (1280 - 25, 45)), (255, 255, 255))
+        screen.draw.filled_rect(Rect((1280 - 525, 15), (500, 50)), (255, 255, 255))
         if player2.hp >= eps:
-            screen.draw.filled_rect(Rect((1280 - 25 - (495 - 25) * player2.hp / 100, 15), (1280 - 25, 45)), (255, 0, 0))
-        screen.draw.text(str(player2.hp), (1280 - 45, 20))
+            screen.draw.filled_rect(Rect((1280 - 25 - 500 * player2.hp / 100, 15), (500 * player2.hp / 100, 50)), (255, 0, 0))
+        screen.draw.text(str(player2.hp), (1280 - 60, 20))
 
         player1.actor.draw()
         player2.actor.draw()
