@@ -3,6 +3,7 @@ import pgzrun
 import time
 import wave
 import pygame#仅用来放音乐！！！
+import random
 WIDTH = 1280
 HEIGHT = 720
 
@@ -51,6 +52,15 @@ now_pressed_button = None
 
 now_page = 'start'
 
+#敌人的行为
+def agent():
+    act=random.randint(1,12)
+    if act>=8: return  'atk'
+    if act==1: return 'def'
+    if act==2: return 'jump'
+    if act==3: return 'right'
+    if 5<=act<=7: return 'left'
+
 class Player(object):
 
     def __init__(self, type):
@@ -68,8 +78,8 @@ class Player(object):
         
         # 上次攻击和防御的时间
         # 用于内置cd和某些判定
-        self.atk_last = -10
-        self.def_last = -10
+        self.action_last = -10
+        self.action_last = -10
 
         # 在xy方向上的速度
         self.vx = 0
@@ -79,8 +89,7 @@ class Player(object):
         if self.type == 'player':
             return [player1_key[i] for i in now_pressed_key if i in player1_key]
         else:
-            #return agent()
-            return ['atk']
+            return [agent()]
         
     def pos_update(self):
         action = self.get_action()
@@ -107,10 +116,10 @@ class Player(object):
         self.actor.left = max(self.actor.left, 0)
 
     def is_attacking(self):
-        return time.time() - self.atk_last > 0.2 and 'atk' in self.get_action()
+        return time.time() - self.action_last > 1 and 'atk' in self.get_action()
 
     def is_defending(self):
-        return time.time() - self.def_last > 0.2 and 'def' in self.get_action()
+        return time.time() - self.action_last > 1 and 'def' in self.get_action()
 
 player1 = Player('player')
 player2 = Player('enemy')
@@ -178,12 +187,12 @@ def attack(u, v):
     if u.actor.colliderect(v.actor):
         v.hp = max(v.hp - u.atk, 0)
         v.balance=min(v.balance+u.atk,100)
-        u.atk_last = time.time()
+        u.action_last = time.time()
 
 def attack_defended(u, v):
     if u.actor.colliderect(v.actor):
         v.hp = max(v.hp - u.atk * 0.1, 0)
-        u.atk_last = time.time()
+        u.action_last = time.time()
 
 def update():
     global now_page, now_pressed_button
