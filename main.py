@@ -9,7 +9,7 @@ eps = 1e-6
 player1_key = {
     keys.J: 'atk',
     keys.S: 'def',
-    keys.K: 'jump',
+    keys.W: 'jump',
     keys.A: 'left',
     keys.D: 'right',
 }
@@ -53,6 +53,7 @@ class Player(object):
         self.type = type
         self.atk = 10
         self.hp = 100
+        self.balance=100
         if type == 'player':
             self.actor = Actor('player1_block')
             self.actor.bottomleft = (0, HEIGHT)
@@ -82,16 +83,16 @@ class Player(object):
             if 'left' in action and 'right' in action:
                 self.vx = 0
             if 'left' in action and 'right' not in action:
-                self.vx = -100
+                self.vx = -5
             if 'left' not in action and 'right' in action:
-                self.vx = 100
+                self.vx = 5
             if 'left' not in action and 'right' not in action:
                 self.vx = 0
-            if 'jump' in action:
-                self.vy = -100
+            if 'jump' in action and self.actor.bottom == HEIGHT:
+                self.vy = -18
         else:
             self.vx = 0
-        self.vy += 10
+        self.vy += 1
 
         self.actor.left += self.vx
         self.actor.bottom += self.vy
@@ -120,17 +121,21 @@ def draw():
 
     if now_page == 'battle':
         screen.clear()
-        screen.fill((0, 0, 0))
-
-        screen.draw.filled_rect(Rect((25, 15), (500, 50)), (255, 255, 255))
+        screen.fill((255,255,255))
+        #玩家血条
+        #screen.draw.filled_rect(Rect((25, 15), (500, 50)), (255, 255, 255))
         if player1.hp >= eps:
             screen.draw.filled_rect(Rect((25, 15), (500 * player1.hp / 100, 50)), (255, 0, 0))
+            screen.draw.filled_rect(Rect((25, 65), (500 * player1.balance / 100, 30)), (255, 255, 0))
         screen.draw.text(str(player1.hp), (30, 20))
-
-        screen.draw.filled_rect(Rect((1280 - 525, 15), (500, 50)), (255, 255, 255))
+        screen.draw.text(str(player1.balance), (30, 70),color='black')
+        #敌人血条
+        #screen.draw.filled_rect(Rect((1280 - 525, 15), (500, 50)), (255, 255, 255))
         if player2.hp >= eps:
             screen.draw.filled_rect(Rect((1280 - 25 - 500 * player2.hp / 100, 15), (500 * player2.hp / 100, 50)), (255, 0, 0))
+            screen.draw.filled_rect(Rect((1280 - 25 - 500 * player2.balance / 100, 65), (500 * player2.balance / 100, 30)), (255, 255, 0))
         screen.draw.text(str(player2.hp), (1280 - 60, 20))
+        screen.draw.text(str(player1.balance), (1280-60, 70),color='black')
 
         player1.actor.draw()
         player2.actor.draw()
@@ -141,7 +146,7 @@ def draw():
         if player2.hp < eps:
             screen.draw.text('player1 win', (WIDTH / 2, HEIGHT / 2))
         else:
-            screen.draw.text('player2 win', (WIDTH / 2, HEIGHT / 2))
+            screen.draw.text('菜', (WIDTH / 2, HEIGHT / 2))
     
     for i, j in button[now_page].items():
         j.paint()
