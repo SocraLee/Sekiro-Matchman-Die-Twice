@@ -114,7 +114,15 @@ class Player(object):
 
 player1 = Player('player')
 player2 = Player('enemy')
-
+def gameinit():
+    global bgmflag
+    player1.hp=100
+    player2.hp=100
+    player1.balance=0
+    player2.balance=0
+    player1.actor.bottomleft = (0, HEIGHT)
+    player2.actor.bottomright = (WIDTH, HEIGHT)
+    bgmflag=True
 def draw():
     global bgmflag
     if now_page == 'start':
@@ -200,6 +208,8 @@ def update():
     if now_page == 'battle_end':
         if now_pressed_button == 'Back':
             now_page = 'start'
+            pygame.mixer.music.stop()
+            gameinit()
             now_pressed_button = None
 
 def on_mouse_down(pos):
@@ -214,11 +224,9 @@ def on_key_down(key):
     if now_page=="start":
         now_page="battle"
         bgmflag=True
-        return
     now_pressed_key.add(key)
 
 def on_key_up(key):
-    if bgmflag==False:
-        now_pressed_key.remove(key)
+    now_pressed_key.remove(key)
 
 pgzrun.go()
