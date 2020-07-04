@@ -5,6 +5,26 @@ import wave
 import pygame#仅用来放音乐！！！
 import random
 import platform
+
+
+def 不死斩():
+    sounds.不死斩.play()
+def 攻击():
+    sounds.攻击.play()
+def 雷电():
+    sounds.雷电.play()
+def 龙闪():
+    sounds.龙闪.play()
+def 普通防御():
+    sounds.普通防御.play()
+def 受伤():
+    sounds.受伤.play()
+def 完美弹反():
+    sounds.完美弹反.play()
+def 一心():
+    sounds.一心.play()
+
+
 WIDTH = 1280
 HEIGHT = 720
 
@@ -89,8 +109,8 @@ class Player(object):
         # 上次攻击和防御的时间
         # 用于内置cd和某些判定
         self.action_last = -10
-        self.action_last = -10
-
+        self.attackSchedule=-10
+        self.defendeSchedule=-10
         # 在xy方向上的速度
         self.vx = 0
         self.vy = 0
@@ -133,10 +153,22 @@ class Player(object):
         self.sword.left = max(self.sword.left, 0)
 
     def is_attacking(self):
-        return time.time() - self.action_last > 1 and 'atk' in self.get_action()
+        if(time.time() - self.action_last > 1 and 'atk' in self.get_action()):
+            if self.attackSchedule<0:#并非攻击进行中
+                self.attackSchedule=time.time()#攻击开始进行
+                return True
+            else :#攻击进行中
+                return True
+        else: return False
 
     def is_defending(self):
-        return time.time() - self.action_last > 1 and 'def' in self.get_action()
+        if(time.time() - self.action_last > 1 and 'def' in self.get_action()):
+            if self.defendeSchedule<0:
+                return True
+            else:
+                self.defendeSchedule=time.time()
+                return True
+        return False
 
 player1 = Player('player')
 player2 = Player('enemy')
@@ -189,16 +221,66 @@ def draw():
             screen.draw.filled_rect(Rect((1280 - 25 - 460 * player2.balance / 100-40, 65), (40+460 * player2.balance / 100, 30)), (255, 255-55*player1.balance/100, 20))
         screen.draw.text(str(player2.hp), (1280 - 60, 20))
         screen.draw.text(str(player2.balance), (1280-60, 70),color='black')
-        if player1.body.bottomleft<=player2.body.bottomright:
-            player1.body.image='left_body'
-            player1.sword.image='left_sword'
-            player2.body.image='right_body'
-            player2.sword.image='right_sword'
+
+        #判断是否重置攻击防御动作
+        t=time.time()
+        if(player1.defendeSchedule>0):
+            if(t-player1.defendeSchedule>0.5):
+                player1.defendeSchedule=-10
+        elif(player1.attackSchedule>0):
+            if(t-player1.attackSchedule>0.7):
+                player1.attackSchedule=-10
+        if(player2.defendeSchedule>0):
+            if(t-player2.defendeSchedule>0.5):
+                player2.defendeSchedule=-10
+        elif(player2.attackSchedule>0):
+            if(t-player2.attackSchedule>0.7):
+                player2.attackSchedule=-10
+
+        #判断相对位置
+        player1text=''
+        player2text=''
+        if(player1.body.bottomleft<=player2.body.bottomright):
+            player1text='left'
+            player2text='right'
         else:
-            player1.body.image='right_body'
-            player1.sword.image='right_sword'
-            player2.body.image='left_body'
-            player2.sword.image='left_sword'
+            player1text='right'
+            player2text='left'
+        #判断动作
+        if(player1.defendeSchedule<0 and player1.attackSchedule<0):
+            player1.body.image=player1text+'_body'
+            player1.sword.image=player1text+'_sword'
+        # elif(player1.defendeSchedule>0):
+        #     player1.body.image=player1text+''
+        #     player1.sword.image=player1text+''
+        # elif(player1.attackSchedule>0):
+        #     if(t-player1.attackSchedule<=0.3):
+        #         player1.body.image =player1text+ '_attack1'
+        #         player1.sword.image = player1text+'attack1'
+        #     elif(t-player1.attackSchedule<=0.6):
+        #         player1.body.image =player1text+ '_attack2'
+        #         player1.sword.image = player1text+'_attack2'
+        #     else:
+        #         player1.body.image =player1text+ '_attack3'
+        #         player1.sword.image = player1text+'_attack3'
+
+        if (player2.defendeSchedule < 0 and player2.attackSchedule < 0):
+            player2.body.image=player2text+'_body'
+            player2.sword.image=player2text+'_sword'
+        # elif (player2.defendeSchedule > 0):
+        #     player2.body.image =player2text+ ''
+        #     player2.sword.image =player2text+ ''
+        # elif (player2.attackSchedule > 0):
+        #     if (t - player2.attackSchedule <= 0.3):
+        #         player2.body.image = player1text + '_attack1'
+        #         player2.sword.image = player1text + 'attack1'
+        #     elif (t - player2.attackSchedule <= 0.6):
+        #         player2.body.image = player1text + '_attack2'
+        #         player2.sword.image = player1text + '_attack2'
+        #     else:
+        #         player2.body.image = player1text + '_attack3'
+        #         player2.sword.image = player1text + '_attack3'
+
         player1.body.draw()
         player1.sword.draw()
         player2.body.draw()
@@ -217,15 +299,21 @@ def draw():
         j.paint()
 
 def attack(u, v):
+    #攻击
     if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk, 0)
         v.balance=min(v.balance+u.atk,100)
+        #
+        #攻击应打断被攻击方动作
+        #
         u.action_last = time.time()
 
 def attack_defended(u, v):
+    #不完美格挡
     if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk * 0.1, 0)
         u.action_last = time.time()
+    #完美格挡
 
 def update():
     global now_page, now_pressed_button
@@ -234,15 +322,20 @@ def update():
         player1.pos_update()
         player2.pos_update()
 
+        t=time.time()
         if player1.is_attacking() and not player2.is_defending():
-            attack(player1, player2)
+            if(t-player1.attackSchedule>=0.6):
+                attack(player1, player2)
         if player1.is_attacking() and player2.is_defending():
-            attack_defended(player1, player2)
+            if(t-player1.attackSchedule>=0.6):
+                attack_defended(player1, player2)
 
         if player2.is_attacking() and not player1.is_defending():
-            attack(player2, player1)
+            if(t-player1.attackSchedule>=0.6):
+                attack(player2, player1)
         if player2.is_attacking() and player1.is_defending():
-            attack_defended(player2, player1)
+            if(t-player2.attackSchedule>=0.6):
+                attack_defended(player2, player1)
 
         if player1.hp < eps or player2.hp < eps:
             now_page = 'battle_end'
