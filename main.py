@@ -146,15 +146,15 @@ class Player(object):
                 self.vx = 0
         self.vy += 1
 
-        t = time.time()
-        if(self.defendeSchedule>0):
-            if(t-self.defendeSchedule<=0.5):
-                self.vx = 0
-                self.vy = 0
-        if(player1.attackSchedule>0):
-            if(t-self.attackSchedule<=0.7):
-                self.vx = 0
-                self.vy = 0
+        # t = time.time()
+        # if(self.defendeSchedule>0):
+        #     if(t-self.defendeSchedule<=0.5):
+        #         self.vx = 0
+        #         self.vy = 0
+        # if(player1.attackSchedule>0):
+        #     if(t-self.attackSchedule<=0.7):
+        #         self.vx = 0
+        #         self.vy = 0
 
         self.body.left += self.vx
         self.body.bottom += self.vy
