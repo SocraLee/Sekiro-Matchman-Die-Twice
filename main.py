@@ -152,22 +152,22 @@ class Player(object):
         self.sword.left = max(self.sword.left, 0)
 
     def is_attacking(self):
-        if(time.time() - self.action_last > 0.3 and 'atk' in self.get_action()):
-            if self.attackSchedule<0:#并非攻击进行中
+        if self.attackSchedule<0:#并非攻击进行中
+            if(time.time() - self.action_last > 0.3 and 'atk' in self.get_action()):
                 self.attackSchedule=time.time()#攻击开始进行
                 return True
             else :#攻击进行中
-                return True
-        else: return False
+                return False
+        else: return True
 
     def is_defending(self):
-        if(time.time() - self.action_last > 0.3 and 'def' in self.get_action()):
-            if self.defendeSchedule<0:
+        if self.defendeSchedule<0:
+            if(time.time() - self.action_last > 0.3 and 'def' in self.get_action()):
                 self.defendeSchedule=time.time()
                 return True
             else:
-                return True
-        return False
+                return False
+        else: return True
 
 player1 = Player('player')
 player2 = Player('enemy')
@@ -251,35 +251,35 @@ def draw():
             player1.body.image=player1text+'_body'
             player1.sword.image=player1text+'_sword'
         elif(player1.defendeSchedule>0):
-            player1.body.image=player1text+'defend'
-            player1.sword.image=player1text+'defend'
+            player1.body.image=player1text+'defend_body'
+            player1.sword.image=player1text+'defend_sword'
         elif(player1.attackSchedule>0):
             if(t-player1.attackSchedule<=0.3):
-                player1.body.image =player1text+ 'attack2'
-                player1.sword.image = player1text+'attack2'
+                player1.body.image =player1text+ 'attack2_body'
+                player1.sword.image = player1text+'attack2_sword'
             elif(t-player1.attackSchedule<=0.5):
-                player1.body.image =player1text+ 'attack3'
-                player1.sword.image = player1text+'attack3'
+                player1.body.image =player1text+ 'attack3_body'
+                player1.sword.image = player1text+'attack3_sword'
             else:
-                player1.body.image =player1text+ 'attack4'
-                player1.sword.image = player1text+'attack4'
+                player1.body.image =player1text+ 'attack4_body'
+                player1.sword.image = player1text+'attack4_sword'
 
         if (player2.defendeSchedule < 0 and player2.attackSchedule < 0):
             player2.body.image=player2text+'_body'
             player2.sword.image=player2text+'_sword'
         elif (player2.defendeSchedule > 0):
-            player2.body.image =player2text+ 'defend'
-            player2.sword.image =player2text+ 'defend'
+            player2.body.image =player2text+ 'defend_body'
+            player2.sword.image =player2text+ 'defend_sword'
         elif (player2.attackSchedule > 0):
             if (t - player2.attackSchedule <= 0.3):
-                player2.body.image = player2text + 'attack2'
-                player2.sword.image = player2text + 'attack2'
+                player2.body.image = player2text + 'attack2_body'
+                player2.sword.image = player2text + 'attack2_sword'
             elif (t - player2.attackSchedule <= 0.5):
-                player2.body.image = player2text + 'attack3'
-                player2.sword.image = player2text + 'attack3'
+                player2.body.image = player2text + 'attack3_body'
+                player2.sword.image = player2text + 'attack3_sword'
             else:
-                player2.body.image = player2text + 'attack4'
-                player2.sword.image = player2text + 'attack4'
+                player2.body.image = player2text + 'attack4_body'
+                player2.sword.image = player2text + 'attack4_sword'
 
         player1.body.draw()
         player1.sword.draw()
@@ -301,10 +301,11 @@ def draw():
 def attack(u, v):
     #攻击
     攻击()
-    if u.body.colliderect(v.body):
+    if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk, 0)
         v.balance=min(v.balance+u.atk*0.5,100)
         受伤()
+        u.attackSchedule=-10
         #
         #攻击应打断被攻击方动作
         #
@@ -313,7 +314,7 @@ def attack(u, v):
 def attack_defended(u, v):
     #不完美格挡
     t=time.time()
-    if u.body.colliderect(v.body):
+    if u.sword.colliderect(v.body):
         if(t-v.defendeSchedule>0.4):
             普通防御()
             v.balance=min(100,v.balance+u.atk)
@@ -335,6 +336,7 @@ def update():
 
         t=time.time()
         if player1.is_attacking() and not player2.is_defending():
+            print(t, player1.attackSchedule)
             if(t-player1.attackSchedule>=0.5):
                 attack(player1, player2)
         elif player1.is_attacking() and player2.is_defending():
