@@ -115,6 +115,8 @@ class Player(object):
         self.vx = 0
         self.vy = 0
 
+        self.descending = False
+
     def get_action(self):
         if self.type == 'player':
             return [player1_key[i] for i in now_pressed_key if i in player1_key]
@@ -123,20 +125,36 @@ class Player(object):
         
     def pos_update(self):
         action = self.get_action()
-        if ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT:
-            if 'left' in action and 'right' in action:
-                self.vx = 0
-            if 'left' in action and 'right' not in action:
-                self.vx = -5
-            if 'left' not in action and 'right' in action:
-                self.vx = 5
-            if 'left' not in action and 'right' not in action:
-                self.vx = 0
-            if 'jump' in action and self.body.bottom == HEIGHT:
-                self.vy = -18
-        else:
+        if self.body.bottom == HEIGHT:
+            self.descending = False
+        if self.descending:
             self.vx = 0
+            self.vy = max(self.vy, 4)
+        else:
+            if ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT:
+                if 'left' in action and 'right' in action:
+                    self.vx = 0
+                if 'left' in action and 'right' not in action:
+                    self.vx = -5
+                if 'left' not in action and 'right' in action:
+                    self.vx = 5
+                if 'left' not in action and 'right' not in action:
+                    self.vx = 0
+                if 'jump' in action and self.body.bottom == HEIGHT:
+                    self.vy = -18
+            else:
+                self.vx = 0
         self.vy += 1
+
+        t = time.time()
+        if(self.defendeSchedule>0):
+            if(t-self.defendeSchedule<=0.5):
+                self.vx = 0
+                self.vy = 0
+        if(player1.attackSchedule>0):
+            if(t-self.attackSchedule<=0.7):
+                self.vx = 0
+                self.vy = 0
 
         self.body.left += self.vx
         self.body.bottom += self.vy
@@ -153,6 +171,8 @@ class Player(object):
         self.sword.left = max(self.sword.left, 0)
 
     def is_attacking(self):
+        if self.descending:
+            return False
         if(time.time() - self.action_last > 1 and 'atk' in self.get_action()):
             if self.attackSchedule<0:#并非攻击进行中
                 self.attackSchedule=time.time()#攻击开始进行
@@ -162,6 +182,8 @@ class Player(object):
         else: return False
 
     def is_defending(self):
+        if self.descending:
+            return False
         if(time.time() - self.action_last > 1 and 'def' in self.get_action()):
             if self.defendeSchedule<0:
                 return True
@@ -224,18 +246,36 @@ def draw():
 
         #判断是否重置攻击防御动作
         t=time.time()
+
         if(player1.defendeSchedule>0):
             if(t-player1.defendeSchedule>0.5):
                 player1.defendeSchedule=-10
         elif(player1.attackSchedule>0):
             if(t-player1.attackSchedule>0.7):
                 player1.attackSchedule=-10
+
+        if(player1.defendeSchedule>0):
+            if player1.body.bottom < HEIGHT:
+                player1.descending = True
+
+        if(player1.attackSchedule>0):
+            if player1.body.bottom < HEIGHT:
+                player1.descending = True
+
         if(player2.defendeSchedule>0):
             if(t-player2.defendeSchedule>0.5):
                 player2.defendeSchedule=-10
         elif(player2.attackSchedule>0):
             if(t-player2.attackSchedule>0.7):
                 player2.attackSchedule=-10
+
+        if(player2.defendeSchedule>0):
+            if player2.body.bottom < HEIGHT:
+                player2.descending = True
+
+        if(player2.attackSchedule>0):
+            if player2.body.bottom < HEIGHT:
+                player2.descending = True
 
         #判断相对位置
         player1text=''
