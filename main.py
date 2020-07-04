@@ -4,12 +4,18 @@ import time
 import wave
 import pygame#仅用来放音乐！！！
 import random
+import platform
 WIDTH = 1280
 HEIGHT = 720
 
+SYS = platform.system().lower()
+
 pygame.mixer.init()
 bgmflag=True
-track=pygame.mixer.music.load(".\sounds\startbgm.mp3")
+if SYS[:3] == 'win':
+    track=pygame.mixer.music.load(".\sounds\startbgm.mp3")
+else:
+    track=pygame.mixer.music.load("./sounds/startbgm.mp3")
 eps = 1e-6
 
 player1_key = {
@@ -70,11 +76,15 @@ class Player(object):
         self.hp = 100
         self.balance=0
         if type == 'player':
-            self.actor = Actor('left')
-            self.actor.bottomleft = (0, HEIGHT)
+            self.body = Actor('left_body')
+            self.sword = Actor('left_sword')
+            self.body.bottomleft = (0, HEIGHT)
+            self.sword.bottomleft = (0, HEIGHT)
         if type == 'enemy':
-            self.actor = Actor('right')
-            self.actor.bottomright = (WIDTH, HEIGHT)
+            self.body = Actor('right_body')
+            self.sword = Actor('right_sword')
+            self.body.bottomleft = (WIDTH, HEIGHT)
+            self.sword.bottomleft = (WIDTH, HEIGHT)
         
         # 上次攻击和防御的时间
         # 用于内置cd和某些判定
@@ -93,7 +103,7 @@ class Player(object):
         
     def pos_update(self):
         action = self.get_action()
-        if 'atk' not in action and 'def' not in action:
+        if ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT:
             if 'left' in action and 'right' in action:
                 self.vx = 0
             if 'left' in action and 'right' not in action:
@@ -102,18 +112,25 @@ class Player(object):
                 self.vx = 5
             if 'left' not in action and 'right' not in action:
                 self.vx = 0
-            if 'jump' in action and self.actor.bottom == HEIGHT:
+            if 'jump' in action and self.body.bottom == HEIGHT:
                 self.vy = -18
         else:
             self.vx = 0
         self.vy += 1
 
-        self.actor.left += self.vx
-        self.actor.bottom += self.vy
-        self.actor.bottom = min(self.actor.bottom, HEIGHT)
-        self.actor.top = max(self.actor.top, 0)
-        self.actor.right = min(self.actor.right, WIDTH)
-        self.actor.left = max(self.actor.left, 0)
+        self.body.left += self.vx
+        self.body.bottom += self.vy
+        self.body.bottom = min(self.body.bottom, HEIGHT)
+        self.body.top = max(self.body.top, 0)
+        self.body.right = min(self.body.right, WIDTH)
+        self.body.left = max(self.body.left, 0)
+
+        self.sword.left += self.vx
+        self.sword.bottom += self.vy
+        self.sword.bottom = min(self.sword.bottom, HEIGHT)
+        self.sword.top = max(self.sword.top, 0)
+        self.sword.right = min(self.sword.right, WIDTH)
+        self.sword.left = max(self.sword.left, 0)
 
     def is_attacking(self):
         return time.time() - self.action_last > 1 and 'atk' in self.get_action()
@@ -123,22 +140,23 @@ class Player(object):
 
 player1 = Player('player')
 player2 = Player('enemy')
+
 def gameinit():
-    global bgmflag
-    player1.hp=100
-    player2.hp=100
-    player1.balance=0
-    player2.balance=0
-    player1.actor.bottomleft = (0, HEIGHT)
-    player2.actor.bottomright = (WIDTH, HEIGHT)
+    global bgmflag, player1, player2
+    player1 = Player('player')
+    player2 = Player('enemy')
     bgmflag=True
+
 def draw():
     global bgmflag
     if now_page == 'start':
         screen.clear()
         screen.blit("start",(0,0))
         if(bgmflag):
-            pygame.mixer.music.load(".\sounds\startbgm.mp3")
+            if SYS[:3] == 'win':
+                pygame.mixer.music.load(".\sounds\startbgm.mp3")
+            else:
+                pygame.mixer.music.load("./sounds/startbgm.mp3")
             pygame.mixer.music.play()
             bgmflag=False
 
@@ -149,7 +167,10 @@ def draw():
     if now_page == 'battle':
         if(bgmflag):
             pygame.mixer.music.stop()
-            pygame.mixer.music.load(".\sounds\isschinbgm.mp3")
+            if SYS[:3] == 'win':
+                pygame.mixer.music.load(".\sounds\isschinbgm.mp3")
+            else:
+                pygame.mixer.music.load("./sounds/isschinbgm.mp3")
             pygame.mixer.music.play()
             bgmflag=False
         screen.clear()
@@ -168,14 +189,20 @@ def draw():
             screen.draw.filled_rect(Rect((1280 - 25 - 460 * player2.balance / 100-40, 65), (40+460 * player2.balance / 100, 30)), (255, 255-55*player1.balance/100, 20))
         screen.draw.text(str(player2.hp), (1280 - 60, 20))
         screen.draw.text(str(player2.balance), (1280-60, 70),color='black')
-        if player1.actor.bottomleft<=player2.actor.bottomright:
-            player1.actor.image='left'
-            player2.actor.image='right'
+        if player1.body.bottomleft<=player2.body.bottomright:
+            player1.body.image='left_body'
+            player1.sword.image='left_sword'
+            player2.body.image='right_body'
+            player2.sword.image='right_sword'
         else:
-            player1.actor.image='right'
-            player2.actor.image='left'
-        player1.actor.draw()
-        player2.actor.draw()
+            player1.body.image='right_body'
+            player1.sword.image='right_sword'
+            player2.body.image='left_body'
+            player2.sword.image='left_sword'
+        player1.body.draw()
+        player1.sword.draw()
+        player2.body.draw()
+        player2.sword.draw()
 
     if now_page == 'battle_end':
         screen.clear()
@@ -190,13 +217,13 @@ def draw():
         j.paint()
 
 def attack(u, v):
-    if u.actor.colliderect(v.actor):
+    if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk, 0)
         v.balance=min(v.balance+u.atk,100)
         u.action_last = time.time()
 
 def attack_defended(u, v):
-    if u.actor.colliderect(v.actor):
+    if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk * 0.1, 0)
         u.action_last = time.time()
 
