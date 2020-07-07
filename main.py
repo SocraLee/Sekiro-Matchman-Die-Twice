@@ -120,7 +120,7 @@ class Player(object):
         else:
             return [agent()]
         
-    def pos_update(self):
+    def update(self):
         action = self.get_action()
         if ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT:
             if 'left' in action and 'right' in action:
@@ -151,22 +151,22 @@ class Player(object):
         self.sword.right = min(self.sword.right, WIDTH)
         self.sword.left = max(self.sword.left, 0)
 
+        if time.time() - self.action_last > 0.7 and 'atk' in action:
+            self.attackSchedule=time.time()
+            self.action_last=time.time()
+
+        if time.time() - self.action_last > 0.7 and 'def' in action:
+            self.defendeSchedule=time.time()
+            self.action_last=time.time()
+
     def is_attacking(self):
         if self.attackSchedule<0:#并非攻击进行中
-            if(time.time() - self.action_last > 0.7 and 'atk' in self.get_action()):
-                self.attackSchedule=time.time()#攻击开始进行
-                return True
-            else :#攻击进行中
-                return False
+            return True
         else: return True
 
     def is_defending(self):
         if self.defendeSchedule<0:
-            if(time.time() - self.action_last > 0.7 and 'def' in self.get_action()):
-                self.defendeSchedule=time.time()
-                return True
-            else:
-                return False
+            return True
         else: return True
 
 player1 = Player('player')
@@ -226,14 +226,14 @@ def draw():
         if(player1.defendeSchedule>0):
             if(t-player1.defendeSchedule>0.5):
                 player1.defendeSchedule=-10
-        elif(player1.attackSchedule>0):
+        if(player1.attackSchedule>0):
             if(t-player1.attackSchedule>0.7):
                 player1.attackSchedule=-10
 
         if(player2.defendeSchedule>0):
             if(t-player2.defendeSchedule>0.5):
                 player2.defendeSchedule=-10
-        elif(player2.attackSchedule>0):
+        if(player2.attackSchedule>0):
             if(t-player2.attackSchedule>0.7):
                 player2.attackSchedule=-10
 
@@ -309,7 +309,6 @@ def attack(u, v):
         #
         #攻击应打断被攻击方动作
         #
-        u.action_last = time.time()
 
 def attack_defended(u, v):
     #不完美格挡
@@ -319,20 +318,19 @@ def attack_defended(u, v):
             普通防御()
             v.balance=min(100,v.balance+u.atk)
             u.attackSchedule=-10
-            u.action_last = time.time()
     #完美格挡
         else:
             完美弹反()
             u.balance=min(100,u.balance+v.atk*2)
             u.attackSchedule=-10
-            u.action_last=time.time()+0.5#额外0.5s硬直
+            u.action_last+=0.5#额外0.5s硬直
 
 def update():
     global now_page, now_pressed_button
 
     if now_page == 'battle':
-        player1.pos_update()
-        player2.pos_update()
+        player1.update()
+        player2.update()
 
         t=time.time()
         if player1.is_attacking() and not player2.is_defending():
