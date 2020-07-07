@@ -153,7 +153,7 @@ class Player(object):
 
     def is_attacking(self):
         if self.attackSchedule<0:#并非攻击进行中
-            if(time.time() - self.action_last > 0.3 and 'atk' in self.get_action()):
+            if(time.time() - self.action_last > 0.7 and 'atk' in self.get_action()):
                 self.attackSchedule=time.time()#攻击开始进行
                 return True
             else :#攻击进行中
@@ -162,7 +162,7 @@ class Player(object):
 
     def is_defending(self):
         if self.defendeSchedule<0:
-            if(time.time() - self.action_last > 0.3 and 'def' in self.get_action()):
+            if(time.time() - self.action_last > 0.7 and 'def' in self.get_action()):
                 self.defendeSchedule=time.time()
                 return True
             else:
@@ -240,46 +240,46 @@ def draw():
         #判断相对位置
         player1text=''
         player2text=''
-        if(player1.body.bottomright<=player2.body.bottomleft):
-            player1text='left'
-            player2text='right'
+        if(player1.body.left<=player2.body.left):
+            player1text='player1/player1left'
+            player2text='player2/player2right'
         else:
-            player1text='right'
-            player2text='left'
+            player1text='player1/player1right'
+            player2text='player2/player2left'
         #判断动作
         if(player1.defendeSchedule<0 and player1.attackSchedule<0):
-            player1.body.image=player1text+'_body'
-            player1.sword.image=player1text+'_sword'
+            player1.body.image=player1text+'attack2_body'
+            player1.sword.image=player1text+'attack2_sword'
         elif(player1.defendeSchedule>0):
-            player1.body.image=player1text+'defend_body'
-            player1.sword.image=player1text+'defend_sword'
+            player1.body.image=player1text+'defense_body'
+            player1.sword.image=player1text+'defense_sword'
         elif(player1.attackSchedule>0):
             if(t-player1.attackSchedule<=0.3):
-                player1.body.image =player1text+ 'attack2_body'
-                player1.sword.image = player1text+'attack2_sword'
+                player1.body.image =player1text+ 'cut1_body'
+                player1.sword.image = player1text+'cut1_sword'
             elif(t-player1.attackSchedule<=0.5):
-                player1.body.image =player1text+ 'attack3_body'
-                player1.sword.image = player1text+'attack3_sword'
+                player1.body.image =player1text+ 'cut2_body'
+                player1.sword.image = player1text+'cut2_sword'
             else:
-                player1.body.image =player1text+ 'attack4_body'
-                player1.sword.image = player1text+'attack4_sword'
+                player1.body.image =player1text+ 'cut3_body'
+                player1.sword.image = player1text+'cut3_sword'
 
         if (player2.defendeSchedule < 0 and player2.attackSchedule < 0):
-            player2.body.image=player2text+'_body'
-            player2.sword.image=player2text+'_sword'
+            player2.body.image=player2text+'attack2_body'
+            player2.sword.image=player2text+'attack2_sword'
         elif (player2.defendeSchedule > 0):
-            player2.body.image =player2text+ 'defend_body'
-            player2.sword.image =player2text+ 'defend_sword'
+            player2.body.image =player2text+ 'defense_body'
+            player2.sword.image =player2text+ 'defense_sword'
         elif (player2.attackSchedule > 0):
             if (t - player2.attackSchedule <= 0.3):
-                player2.body.image = player2text + 'attack2_body'
-                player2.sword.image = player2text + 'attack2_sword'
+                player2.body.image = player2text + 'cut1_body'
+                player2.sword.image = player2text + 'cut1_sword'
             elif (t - player2.attackSchedule <= 0.5):
-                player2.body.image = player2text + 'attack3_body'
-                player2.sword.image = player2text + 'attack3_sword'
+                player2.body.image = player2text + 'cut2_body'
+                player2.sword.image = player2text + 'cut2_sword'
             else:
-                player2.body.image = player2text + 'attack4_body'
-                player2.sword.image = player2text + 'attack4_sword'
+                player2.body.image = player2text + 'cut3_body'
+                player2.sword.image = player2text + 'cut3_sword'
 
         player1.body.draw()
         player1.sword.draw()
@@ -336,7 +336,6 @@ def update():
 
         t=time.time()
         if player1.is_attacking() and not player2.is_defending():
-            print(t, player1.attackSchedule)
             if(t-player1.attackSchedule>=0.5):
                 attack(player1, player2)
         elif player1.is_attacking() and player2.is_defending():
