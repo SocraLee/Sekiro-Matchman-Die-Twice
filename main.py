@@ -161,12 +161,12 @@ class Player(object):
 
     def is_attacking(self):
         if self.attackSchedule<0:#并非攻击进行中
-            return True
+            return False
         else: return True
 
     def is_defending(self):
         if self.defendeSchedule<0:
-            return True
+            return False
         else: return True
 
 player1 = Player('player')
@@ -248,11 +248,11 @@ def draw():
             player2text='player2/player2left'
         #判断动作
         if(player1.defendeSchedule<0 and player1.attackSchedule<0):
-            player1.body.image=player1text+'attack2_body'
-            player1.sword.image=player1text+'attack2_sword'
+            player1.body.image=player1text+'stand'
+            player1.sword.image=player1text+'stand'
         elif(player1.defendeSchedule>0):
-            player1.body.image=player1text+'defense_body'
-            player1.sword.image=player1text+'defense_sword'
+            player1.body.image=player1text+'normaldefense'
+            player1.sword.image=player1text+'normaldefense'
         elif(player1.attackSchedule>0):
             if(t-player1.attackSchedule<=0.3):
                 player1.body.image =player1text+ 'cut1_body'
@@ -268,8 +268,8 @@ def draw():
             player2.body.image=player2text+'attack2_body'
             player2.sword.image=player2text+'attack2_sword'
         elif (player2.defendeSchedule > 0):
-            player2.body.image =player2text+ 'defense_body'
-            player2.sword.image =player2text+ 'defense_sword'
+            player2.body.image =player2text+ 'defense'
+            player2.sword.image =player2text+ 'defense'
         elif (player2.attackSchedule > 0):
             if (t - player2.attackSchedule <= 0.3):
                 player2.body.image = player2text + 'cut1_body'
@@ -307,7 +307,7 @@ def attack(u, v):
         受伤()
         u.attackSchedule=-10
         #
-        #攻击应打断被攻击方动作
+        #除非防御，攻击应打断被攻击方动作
         #
 
 def attack_defended(u, v):
@@ -323,7 +323,7 @@ def attack_defended(u, v):
             完美弹反()
             u.balance=min(100,u.balance+v.atk*2)
             u.attackSchedule=-10
-            u.action_last+=0.5#额外0.5s硬直
+            u.action_last=time.time()+0.5#从当前时间记，额外0.5s硬直
 
 def update():
     global now_page, now_pressed_button
