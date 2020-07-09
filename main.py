@@ -48,18 +48,16 @@ player1_key = {
 
 class Button(object):
 
-    def __init__(self, pos, color, text):
-        self.pos = pos
-        self.color = color
-        self.text = text
+    def __init__(self, pos, img):
+        self.button = Actor(img)
+        self.button.topleft = pos
 
     def paint(self):
-        screen.draw.filled_rect(Rect(self.pos[0], self.pos[1]), self.color)
-        screen.draw.text(self.text, self.pos[0])
+        self.button.draw()
 
     # 判断p是否在按钮内
     def in_button(self, p):
-        return 0 <= p[0] - self.pos[0][0] <= self.pos[1][0] and 0 <= p[1] - self.pos[0][1] <= self.pos[1][1]
+        return self.button.collidepoint(p)
 
 button = {
     'start': {
@@ -69,7 +67,7 @@ button = {
     'battle': {
     },
     'battle_end': {
-        'Back': Button(((WIDTH - 60, HEIGHT - 35), (60, 30)), (254, 67, 107), 'Back'),
+        'Back': Button((WIDTH / 2 - 110, HEIGHT * 7 / 8), 'backbutton'),
     },
 }
 
