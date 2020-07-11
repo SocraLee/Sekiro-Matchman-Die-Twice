@@ -590,6 +590,7 @@ def update():
     if now_page == 'battle_end':
         if now_pressed_button == 'Back':
             now_page = 'start'
+            gameinit()
             now_pressed_button = None
 
 def on_mouse_down(pos):
