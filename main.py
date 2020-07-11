@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import pgzrun
 import time
-import wave
-import pygame#仅用来放音乐！！！
 import random
 import platform
 
@@ -39,12 +37,7 @@ BounceTime=0.6
 
 SYS = platform.system().lower()
 
-pygame.mixer.init()
 bgmflag=True
-if SYS[:3] == 'win':
-    track=pygame.mixer.music.load(".\sounds\startbgm.mp3")
-else:
-    track=pygame.mixer.music.load("./sounds/startbgm.mp3")
 eps = 1e-6
 
 player1_key = {
@@ -301,10 +294,13 @@ def draw():
         screen.blit("start",(0,0))
         if(bgmflag):
             if SYS[:3] == 'win':
-                pygame.mixer.music.load(".\sounds\startbgm.mp3")
+                #sounds.startbgm.play()
+                music.play("startbgm")
+
             else:
-                pygame.mixer.music.load("./sounds/startbgm.mp3")
-            pygame.mixer.music.play()
+                #sounds.startbgm.play()
+                music.play("startbgm")
+
             bgmflag=False
 
     if now_page == 'setting':
@@ -314,12 +310,12 @@ def draw():
     if now_page == 'battle':
 
         if(bgmflag):
-            pygame.mixer.music.stop()
+            music.stop()
             if SYS[:3] == 'win':
-                pygame.mixer.music.load(".\sounds\isschinbgm.mp3")
+                music.play("isschinbgm.mp3")
             else:
-                pygame.mixer.music.load("./sounds/isschinbgm.mp3")
-            pygame.mixer.music.play()
+                music.play("isschinbgm.mp3")
+            #music.play()
             bgmflag=False
         screen.clear()
         screen.fill((255,255,255))#白色背景，适用于黑色火柴人
@@ -525,7 +521,6 @@ def update():
     if now_page == 'battle_end':
         if now_pressed_button == 'Back':
             now_page = 'start'
-            pygame.mixer.music.stop()
             gameinit()
             now_pressed_button = None
 
