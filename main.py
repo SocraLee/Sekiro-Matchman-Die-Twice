@@ -27,7 +27,7 @@ WIDTH = 1280
 HEIGHT = 720
 ENEMYhp=200#敌人生命值
 ENEMYbalance=200#敌人平衡值
-ENEMYattack=10#敌人攻击力
+ENEMYattack=30#敌人攻击力
 AttackPeriod=0.9# 攻击总耗时
 AttackUpdate=0.3# 攻击阶段更新间隔
 ActionGap=0.9# 从一个动作发起到另一个动作发起的间隔
@@ -46,6 +46,9 @@ player1_key = {
     keys.W: 'jump',
     keys.A: 'left',
     keys.D: 'right',
+    keys.U:'dragonSlash',
+    keys.I:'Immor',
+    keys.O:''
 }
 
 class Button(object):
@@ -125,8 +128,20 @@ class Player(object):
         if type == 'enemy':
             self.body = Actor('right_body')
             self.sword = Actor('right_sword')
-            self.atk=ENEMYattack
-            self.hp=ENEMYhp
+            if(difficulty=='Hard'):
+                ENEMYbalance=200
+                ENEMYhp=200
+                ENEMYattack=30
+            elif(difficulty=='Normal'):
+                ENEMYhp=150
+                ENEMYbalance=150
+                ENEMYattack=20
+            elif(difficulty=='Easy'):
+                ENEMYhp = 100
+                ENEMYbalance = 100
+                ENEMYattack = 10
+            self.atk = ENEMYattack
+            self.hp = ENEMYhp
             self.body.bottomleft = (WIDTH, HEIGHT)
             self.sword.bottomleft = (WIDTH, HEIGHT)
         
@@ -141,6 +156,8 @@ class Player(object):
         self.skillFlag=False#技能是否进行了攻击判定
         self.skillMove=False#技能是否已经完成突进
         self.defenseFlag=0
+        self.skillChoice=""
+        self.skill=["dragonSlash","Immor","superCut"]
         # 在xy方向上的速度
         self.vx = 0
         self.vy = 0
@@ -192,6 +209,7 @@ class Player(object):
                 self.action_last=time.time()
                 self.skillFlag=False
                 self.skillMove=False
+                self.skillChoice=random.choice(self.skill)
             else:
                 self.attackSchedule=time.time()
                 self.action_last=time.time()
@@ -232,21 +250,54 @@ class Player(object):
             self.sword.image = text + 'bounce_sword'
         elif(self.skillSchedule>0 and  time.time()-self.skillSchedule<SkillPeriod):
             temp=time.time()-self.skillSchedule
-            if(temp<1.2):
-                self.body.image=text+'attack0'
-                self.sword.image=text+'attack0'
-            elif(temp<1.4):
-                self.body.image=text+'attack1'
-                self.sword.image=text+'attack1'
-            elif(temp<1.5):
-                self.body.image=text+'attack2'
-                self.sword.image=text+'attack2'
-            elif(temp<1.5):
-                self.body.image=text+'attack3'
-                self.sword.image=text+'attack3'
-            else:
-                self.body.image=text+'attack4'
-                self.sword.image=text+'attack4'
+            if(self.skillChoice=='dragonSlash'):
+                if(temp<1.2):
+                    self.body.image=text+'attack0'
+                    self.sword.image=text+'attack0'
+                elif(temp<1.4):
+                    self.body.image=text+'attack1'
+                    self.sword.image=text+'attack1'
+                elif(temp<1.6):
+                    self.body.image=text+'attack2'
+                    self.sword.image=text+'attack2'
+                elif(temp<1.8):
+                    self.body.image=text+'attack3'
+                    self.sword.image=text+'attack3'
+                else:
+                    self.body.image=text+'attack4'
+                    self.sword.image=text+'attack4'
+            elif(self.skillChoice=='Immor'):
+                if(temp<1.2):
+                    self.body.image=text+'attack10'
+                    self.sword.image=text+'attack10'
+                elif(temp<1.4):
+                    self.body.image=text+'attack11'
+                    self.sword.image=text+'attack11'
+                elif(temp<1.6):
+                    self.body.image=text+'attack12'
+                    self.sword.image=text+'attack12'
+                elif(temp<1.8):
+                    self.body.image=text+'attack13'
+                    self.sword.image=text+'attack13'
+                else:
+                    self.body.image=text+'attack14'
+                    self.sword.image=text+'attack14'
+            elif(self.skillChoice=='superCut'):
+                if(temp<1.2):
+                    self.body.image=text+'attack20'
+                    self.sword.image=text+'attack20'
+                elif(temp<1.4):
+                    self.body.image=text+'attack21'
+                    self.sword.image=text+'attack21'
+                elif(temp<1.6):
+                    self.body.image=text+'attack22'
+                    self.sword.image=text+'attack22'
+                elif(temp<1.8):
+                    self.body.image=text+'attack23'
+                    self.sword.image=text+'attack23'
+                else:
+                    self.body.image=text+'attack24'
+                    self.sword.image=text+'attack24'
         elif (self.defendeSchedule < 0 and self.attackSchedule < 0 and self.skillSchedule < 0 and self.bounced < 0):
             if(self.body.bottom < HEIGHT):
                 self.body.image = text + 'jump'
@@ -369,9 +420,9 @@ def attack(u, v):
     if u.sword.colliderect(v.body):
         v.hp = max(v.hp - u.atk, 0)
         if(v.type=='player'):
-            v.balance=min(v.balance+u.atk*0.5,100)
+            v.balance=min(v.balance+u.atk,100)
         else:
-            v.balance=min(v.balance+u.atk*0.3,200)
+            v.balance=min(v.balance+u.atk,200)
             v.anger+=3
         受伤()
         u.attackFlag=True
@@ -381,7 +432,7 @@ def attack_defended(u,v):
     t=time.time()
     #不完美格挡
     if u.sword.colliderect(v.body):
-        if(t-v.defendeSchedule>0.3):
+        if(t-v.defendeSchedule>0.2):
             普通防御()
             v.balance=min(100,v.balance+u.atk)
             u.attackFlag=True
@@ -401,7 +452,6 @@ def attack_defended(u,v):
             v.defenseFlag=2
 
 def special_attack(u,v,text):
-    print(u.skillFlag)
     if (u.skillFlag == True): return
     if(u.skillMove==False):
         u.skillMove==True
@@ -414,7 +464,6 @@ def special_attack(u,v,text):
             u.sword.left-=max(delta,-20)+3
         u.img_update(text)
     if u.sword.colliderect(v.body)or u.body.colliderect(v.body):
-        print("detected attack1")
         v.hp = max(v.hp - 2*u.atk, 0)
         if (v.type == 'player'):
             v.balance = min(v.balance + u.atk, 100)
@@ -439,10 +488,10 @@ def special_defended(u,v,text):
     t = time.time()
     # 不完美格挡
     if u.sword.colliderect(v.body)or u.body.colliderect(v.body):
-        if (t - v.defendeSchedule > 0.3):
+        if (t - v.defendeSchedule > 0.15):
             普通防御()
             普通防御()
-            v.balance = min(100, v.balance + u.atk)
+            v.balance = min(100, v.balance + u.atk*2)
             u.skillFlag = True
             v.anger += 3
             v.defenseFlag = 1
@@ -451,9 +500,9 @@ def special_defended(u,v,text):
             完美弹反()
             完美弹反()
             if (u.type == 'player'):
-                u.balance = min(u.balance + u.atk * 2, 100)
+                u.balance = min(u.balance + u.atk, 100)
             else:
-                u.balance = min(u.balance + u.atk * 1.5, 200)
+                u.balance = min(u.balance + u.atk * 2, 200)
                 u.anger += 0
             u.skillFlag = True
             u.action_last = t + 1  # 从当前时间记，额外1s硬直
