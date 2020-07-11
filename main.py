@@ -68,6 +68,9 @@ class Button(object):
 
 button = {
     'start': {
+        'Easy': Button((WIDTH / 2 - 110, HEIGHT * 64 / 100), 'buttoneasy'),
+        'Normal': Button((WIDTH / 2 - 110, HEIGHT * 74 / 100), 'buttonnormal'),
+        'Hard': Button((WIDTH / 2 - 110, HEIGHT * 84 / 100), 'buttonhard'),
     },
     'setting': {
     },
@@ -82,6 +85,8 @@ now_pressed_key = set()
 now_pressed_button = None
 
 now_page = 'start'
+
+difficulty = None
 
 #敌人的行为
 def agent(player1,player2):
@@ -434,7 +439,14 @@ def special_defended(u,v):
     pass
 
 def update():
-    global now_page, now_pressed_button
+    global now_page, now_pressed_button, bgmflag, difficulty
+
+    if now_page == 'start':
+        if now_pressed_button in ['Easy', 'Normal', 'Hard']:
+            difficulty = now_pressed_button
+            bgmflag = True
+            now_page = 'battle'
+            return
 
     if now_page == 'battle':
         player1.update()
@@ -473,10 +485,6 @@ def on_mouse_down(pos):
             now_pressed_button = i
 
 def on_key_down(key):
-    global now_page,bgmflag
-    if now_page=="start":
-        now_page="battle"
-        bgmflag=True
     now_pressed_key.add(key)
 
 def on_key_up(key):
