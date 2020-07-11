@@ -212,7 +212,7 @@ class Player(object):
                 if(self.skillChoice=='dragonSlash'):一心()
                 elif(self.skillChoice=='Immor'):
                     不死斩()
-                    self.skillMove=False
+                    self.skillMove=True
                 elif(self.skillChoice=='superCut'): 龙闪()
 
             else:
@@ -353,7 +353,7 @@ def draw():
         screen.fill((0, 0, 0))
 
     if now_page == 'battle':
-
+        gameinit()
         if(bgmflag):
             music.stop()
             if SYS[:3] == 'win':
@@ -413,7 +413,9 @@ def draw():
         if player2.hp < eps or player2.balance>200-eps:
             screen.blit("succeed",(0,0))
             player1.body.image='player1/player1leftstand'
-            player2.body.image='player2/player2rightfalldown'
+            if(difficulty=='Hard'):player2.body.image='player2_cb/player2rightfalldown'
+            else:player2.body.image='player2/player2rightfalldown'
+            print(difficulty)
             player2.body.draw()
             player1.body.draw()
         else:
@@ -541,7 +543,6 @@ def update():
         if now_pressed_button in ['Easy', 'Normal', 'Hard']:
             difficulty = now_pressed_button
             bgmflag = True
-            gameinit()
             now_page = 'battle'
             return
 
@@ -596,7 +597,6 @@ def update():
     if now_page == 'battle_end':
         if now_pressed_button == 'Back':
             now_page = 'start'
-            gameinit()
             now_pressed_button = None
 
 def on_mouse_down(pos):
