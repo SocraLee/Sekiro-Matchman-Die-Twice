@@ -25,7 +25,7 @@ def 一心():
 
 WIDTH = 1280
 HEIGHT = 720
-ENEMYhp=10#敌人生命值
+ENEMYhp=200#敌人生命值
 ENEMYbalance=200#敌人平衡值
 ENEMYattack=30#敌人攻击力
 AttackPeriod=0.9# 攻击总耗时
@@ -333,7 +333,7 @@ def gameinit():
     bgmflag=True
 
 def draw():
-    global bgmflag,ENEMYhp,ENEMYattack,ENEMYbalance
+    global bgmflag,ENEMYhp,ENEMYattack,ENEMYbalance,difficulty
     if now_page == 'start':
         screen.clear()
         screen.blit("start",(0,0))
@@ -363,7 +363,9 @@ def draw():
             #music.play()
             bgmflag=False
         screen.clear()
-        screen.fill((255,255,255))#白色背景，适用于黑色火柴人
+        if(difficulty=='Hard'):screen.blit("pku",(0,0))
+        else:screen.fill((255,255,255))#白色背景，适用于黑色火柴人
+
 
         #玩家血条
         if player1.hp >= eps:
