@@ -70,8 +70,6 @@ button = {
         'Normal': Button((WIDTH / 2 - 110, HEIGHT * 74 / 100), 'buttonnormal'),
         'Hard': Button((WIDTH / 2 - 110, HEIGHT * 84 / 100), 'buttonhard'),
     },
-    'setting': {
-    },
     'battle': {
     },
     'battle_end': {
@@ -348,12 +346,7 @@ def draw():
 
             bgmflag=False
 
-    if now_page == 'setting':
-        screen.clear()
-        screen.fill((0, 0, 0))
-
     if now_page == 'battle':
-        gameinit()
         if(bgmflag):
             music.stop()
             if SYS[:3] == 'win':
