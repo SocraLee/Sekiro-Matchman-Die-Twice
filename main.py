@@ -210,7 +210,9 @@ class Player(object):
                 self.skillMove=False
                 self.skillChoice=random.choice(self.skill)
                 if(self.skillChoice=='dragonSlash'):一心()
-                elif(self.skillChoice=='Immor'):不死斩()
+                elif(self.skillChoice=='Immor'):
+                    不死斩()
+                    self.skillMove=False
                 elif(self.skillChoice=='superCut'): 龙闪()
 
             else:
@@ -428,7 +430,7 @@ def attack(u, v):
             v.balance=min(v.balance+u.atk,100)
         else:
             v.balance=min(v.balance+u.atk,ENEMYbalance)
-            v.anger+=10
+            v.anger+=4
         受伤()
         u.attackFlag=True
 
@@ -500,11 +502,24 @@ def special_defended(u,v,text):
             普通防御()
             if(v.type=='player'): v.balance = min(100, v.balance + u.atk*2)
             else:v.balance = min(ENEMYbalance, v.balance + u.atk*2)
+            #不死斩破防
+            if(u.skillChoice=='Immor'):
+                if(v.type=='player'):
+                    v.hp=max(0,v.hp-u.atk)
+                else:
+                    v.hp = max(0, v.hp - 2*u.atk)
             u.skillFlag = True
             v.anger += 3
             v.defenseFlag = 1
         # 完美格挡
         else:
+            #不死斩不会被弹反
+            if(u.skillChoice=='Immor'):
+                if(v.type=='player'):
+                    v.hp=max(0,v.hp-u.atk)
+                else:
+                    v.hp = max(0, v.hp - 2*u.atk)
+                return
             完美弹反()
             完美弹反()
             if (u.type == 'player'):
