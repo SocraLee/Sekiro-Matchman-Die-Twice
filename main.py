@@ -27,6 +27,13 @@ def 一心():
 
 WIDTH = 1280
 HEIGHT = 720
+ENEMYhp=200#敌人生命值
+ENEMYbalance=200#敌人平衡值
+ENEMYattack=30#敌人攻击力
+AttackPeriod=0.9# 攻击总耗时
+AttackUpdate=0.3# 攻击阶段更新间隔
+ActionGap=0.9# 从一个动作发起到另一个动作发起的间隔
+BounceTime=0.6
 
 SYS = platform.system().lower()
 
@@ -118,18 +125,18 @@ class Player(object):
         if type == 'enemy':
             self.body = Actor('right_body')
             self.sword = Actor('right_sword')
-            self.atk=40
-            self.hp=200
+            self.atk=ENEMYattack
+            self.hp=ENEMYhp
             self.body.bottomleft = (WIDTH, HEIGHT)
             self.sword.bottomleft = (WIDTH, HEIGHT)
         
         # 上次攻击和防御的时间
         # 用于内置cd和某些判定
-        self.action_last = -10
-        self.attackSchedule=-10
-        self.defendeSchedule=-10
-        self.skillSchedule=-10
-        self.bounced=-10#记录被弹开的结束时间
+        self.action_last = -10#上一个动作的起始时间1
+        self.attackSchedule=-10#攻击动作的起始时间
+        self.defendeSchedule=-10#防御动作的起始时间
+        self.skillSchedule=-10#技能释放的起始时间
+        self.bounced=-10#记录被弹开的起始时间
         self.attackFlag=False#是否成功进行了攻击判定
         self.defenseFlag=0
         # 在xy方向上的速度
@@ -144,7 +151,8 @@ class Player(object):
         
     def update(self):
         action = self.get_action()
-        if time.time()-self.skillSchedule>0.3 and( ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT):
+        #若要求释放技能时不能移动，则更新if条件
+        if ( ('atk' not in action and 'def' not in action) or self.body.bottom < HEIGHT):
             if 'left' in action and 'right' in action:
                 self.vx = 0
             if 'left' in action and 'right' not in action:
@@ -174,12 +182,12 @@ class Player(object):
         self.sword.left = max(self.sword.left, 0)
 
         t=time.time()
-        if t - self.action_last > 0.9 and self.attackSchedule<0 and 'atk' in action and t-self.bounced>=0.5:
+        if t - self.action_last > ActionGap and self.attackSchedule<0 and 'atk' in action and t-self.bounced>=BounceTime:
             self.attackSchedule=time.time()
             self.action_last=time.time()
             self.attackFlag=False
 
-        if t - self.action_last > 0.9 and self.defendeSchedule<0 and 'def' in action and t-self.bounced>=0.5:
+        if t - self.action_last > ActionGap and self.defendeSchedule<0 and 'def' in action and t-self.bounced>=BounceTime:
             self.defendeSchedule=time.time()
             self.action_last=time.time()
             self.defenseFlag=0
@@ -193,6 +201,73 @@ class Player(object):
         if self.defendeSchedule<0:
             return False
         else: return True
+
+    def state_update(self):
+        if (self.skillSchedule > 0):
+            if (time.time() - self.skillSchedule > 0.6):
+                self.skillSchedule = -10
+        if (self.defendeSchedule > 0):
+            if (time.time() - self.defendeSchedule > 0.5):
+                self.defendeSchedule = -10
+        if (self.attackSchedule > 0):
+            if (time.time() - self.attackSchedule > 0.8):
+                self.attackSchedule = -10
+        if (self.bounced >= 0):
+            if (time.time() - self.bounced > 0.5):
+                self.bounced = -10
+
+    def img_update(self,text):
+        if (self.bounced > 0 and time.time() - self.bounced < BounceTime):
+            self.body.image = text + 'bounce_body'
+            self.sword.image = text + 'bounce_sword'
+            # elif(player2.anger>=10 and player2.skillSchedule<0):
+            #     player2.skillSchedule=time.time()
+            #     player2.action_last =time.time()
+            #     龙闪()
+            #     player2.anger=0
+            # elif(t-player2.skillSchedule<0.5):
+            #     temp=t-player2.skillSchedule
+            #     if(temp<0.3):
+            #         player2.body.image=player2text+'attack0'
+            #         player2.sword.image=player2text+'attack0'
+            #     elif(temp<0.4):
+            #         player2.body.image=player2text+'attack1'
+            #         player2.sword.image=player2text+'attack1'
+            #     elif(temp<0.47):
+            #         player2.body.image=player2text+'attack2'
+            #         player2.sword.image=player2text+'attack2'
+            #     elif(temp<0.57):
+            #         player2.body.image=player2text+'attack3'
+            #         player2.sword.image=player2text+'attack3'
+            #     else:
+            #         player2.body.image=player2text+'attack4'
+            #         player2.sword.image=player2text+'attack4'
+        elif (self.defendeSchedule < 0 and self.attackSchedule < 0 and self.skillSchedule < 0 and self.bounced < 0):
+            self.body.image = text + 'stand'
+            self.sword.image = text + 'stand'
+        elif (self.defendeSchedule > 0):
+            if (self.defenseFlag == 0):
+                self.body.image = text + 'defense'
+                self.sword.image = text + 'defense'
+            if (self.defenseFlag == 1):
+                self.body.image = text + 'normaldefense_body'
+                self.sword.image = text + 'normaldefense_sword'
+            if (self.defenseFlag == 2):
+                self.body.image = text + 'perfectdefense'
+                self.sword.image = text + 'perfectdefense'
+        if (self.attackSchedule > 0):
+            if (time.time() - self.attackSchedule <= AttackUpdate):
+                self.body.image = text + 'cut1_body'
+                self.sword.image = text + 'cut1_sword'
+            elif (time.time() - self.attackSchedule <= 2*AttackUpdate):
+                self.body.image = text + 'cut2_body'
+                self.sword.image = text + 'cut2_sword'
+            else:
+                self.body.image = text + 'cut3_body'
+                self.sword.image = text + 'cut3_sword'
+        self.body.draw()
+        self.sword.draw()
+
 
 player1 = Player('player')
 player2 = Player('enemy')
@@ -221,6 +296,7 @@ def draw():
         screen.fill((0, 0, 0))
 
     if now_page == 'battle':
+
         if(bgmflag):
             pygame.mixer.music.stop()
             if SYS[:3] == 'win':
@@ -231,44 +307,24 @@ def draw():
             bgmflag=False
         screen.clear()
         screen.fill((255,255,255))#白色背景，适用于黑色火柴人
+
         #玩家血条
-        #screen.draw.filled_rect(Rect((25, 15), (500, 50)), (255, 255, 255))
         if player1.hp >= eps:
             screen.draw.filled_rect(Rect((25, 15), (500 * player1.hp / 100, 50)), (254, 67, 60))
             screen.draw.filled_rect(Rect((25, 65), (40+460 * player1.balance / 100, 30)), (255, 255-55*player1.balance/100, 20))
         screen.draw.text(str(player1.hp), (30, 20))
         screen.draw.text(str(player1.balance), (30, 70),color='black')
         #敌人血条
-        #screen.draw.filled_rect(Rect((1280 - 525, 15), (500, 50)), (255, 255, 255))
         if player2.hp >= eps:
-            screen.draw.filled_rect(Rect((1280 - 25 - 500 * player2.hp / 200, 15), (500 * player2.hp / 200, 50)), (254, 67, 60))
-            screen.draw.filled_rect(Rect((1280 - 25 - 460 * player2.balance / 200-40, 65), (40+460 * player2.balance / 200, 30)), (255, 255-55*player1.balance/200, 20))
+            screen.draw.filled_rect(Rect((1280 - 25 - 500 * player2.hp / ENEMYhp, 15), (500 * player2.hp / ENEMYhp, 50)), (254, 67, 60))
+            screen.draw.filled_rect(Rect((1280 - 25 - 460 * player2.balance / ENEMYbalance-40, 65), (40+460 * player2.balance / ENEMYbalance, 30)), (255, 255-55*player2.balance/ENEMYbalance, 20))
         screen.draw.text(str(player2.hp), (1280 - 60, 20))
         screen.draw.text(str(player2.balance), (1280-60, 70),color='black')
 
-        #判断是否重置攻击防御动作
-        if(player1.defendeSchedule>0):
-            if(time.time()-player1.defendeSchedule>0.5):
-                player1.defendeSchedule=-10
-        if(player1.attackSchedule>0):
-            if(time.time()-player1.attackSchedule>0.6):
-                player1.attackSchedule=-10
-        if(player1.bounced>0):
-            if(time.time()-player1.bounced>0.5):
-                player1.bounced=-10
+        #更新状态
+        player1.state_update()
+        player2.state_update()
 
-        if(player2.skillSchedule>0):
-            if (time.time() - player2.skillSchedule > 0.6):
-                player2.skillSchedule = -10
-        if(player2.defendeSchedule>0):
-            if(time.time()-player2.defendeSchedule>0.5):
-                player2.defendeSchedule=-10
-        if(player2.attackSchedule>0):
-            if(time.time()-player2.attackSchedule>0.8):
-                player2.attackSchedule=-10
-        if(player2.bounced>=0):
-            if(time.time()-player2.bounced>0.5):
-                player2.bounced=-10
         #判断相对位置
         player1text=''
         player2text=''
@@ -278,95 +334,16 @@ def draw():
         else:
             player1text='player1/player1right'
             player2text='player2/player2left'
-        #判断动作
 
-
-        if(player1.bounced>0and time.time()- player1.bounced<0.5):
-            player1.body.image=player1text+'bounce_body'
-            player1.sword.image = player1text +'bounce_sword'
-        elif(player1.defendeSchedule<0 and player1.attackSchedule<0):
-            player1.body.image=player1text+'stand'
-            player1.sword.image=player1text+'stand'
-        elif(player1.defendeSchedule>0):
-            if(player1.defenseFlag==0):
-                player1.body.image=player1text+'defense'
-                player1.sword.image=player1text+'defense'
-            if(player1.defenseFlag==1):
-                player1.body.image=player1text+'normaldefense_body'
-                player1.sword.image=player1text+'normaldefense_sword'
-            if(player1.defenseFlag==2):
-                player1.body.image=player1text+'perfectdefense'
-                player1.sword.image=player1text+'perfectdefense'
-        if(player1.attackSchedule>0):
-            if(time.time()-player1.attackSchedule<=0.2):
-                player1.body.image =player1text+ 'cut1_body'
-                player1.sword.image = player1text+'cut1_sword'
-            elif(time.time()-player1.attackSchedule<=0.4):
-                player1.body.image =player1text+ 'cut2_body'
-                player1.sword.image = player1text+'cut2_sword'
-            else:
-                player1.body.image =player1text+ 'cut3_body'
-                player1.sword.image = player1text+'cut3_sword'
-
-        if(player2.bounced>0and time.time()-player2.bounced<0.5):
-            player2.body.image=player2text+'bounce_body'
-            player2.sword.image = player2text + 'bounce_sword'
-        # elif(player2.anger>=10 and player2.skillSchedule<0):
-        #     player2.skillSchedule=time.time()
-        #     player2.action_last =time.time()
-        #     龙闪()
-        #     player2.anger=0
-        # elif(t-player2.skillSchedule<0.5):
-        #     temp=t-player2.skillSchedule
-        #     if(temp<0.3):
-        #         player2.body.image=player2text+'attack0'
-        #         player2.sword.image=player2text+'attack0'
-        #     elif(temp<0.4):
-        #         player2.body.image=player2text+'attack1'
-        #         player2.sword.image=player2text+'attack1'
-        #     elif(temp<0.47):
-        #         player2.body.image=player2text+'attack2'
-        #         player2.sword.image=player2text+'attack2'
-        #     elif(temp<0.57):
-        #         player2.body.image=player2text+'attack3'
-        #         player2.sword.image=player2text+'attack3'
-        #     else:
-        #         player2.body.image=player2text+'attack4'
-        #         player2.sword.image=player2text+'attack4'
-        elif (player2.defendeSchedule < 0 and player2.attackSchedule < 0 and player2.skillSchedule<0 and player2.bounced<0):
-            player2.body.image=player2text+'stand'
-            player2.sword.image=player2text+'stand'
-        elif (player2.defendeSchedule > 0):
-            if(player2.defenseFlag==0):
-                player2.body.image =player2text+ 'defense'
-                player2.sword.image =player2text+ 'defense'
-            if(player2.defenseFlag==1):
-                player2.body.image =player2text+ 'normaldefense_body'
-                player2.sword.image =player2text+ 'normaldefense_sword'
-            if(player2.defenseFlag==2):
-                player2.body.image =player2text+ 'perfectdefense'
-                player2.sword.image =player2text+ 'perfectdefense'
-        if (player2.attackSchedule > 0):
-            if (time.time() - player2.attackSchedule <= 0.3):
-                player2.body.image = player2text + 'cut1_body'
-                player2.sword.image = player2text + 'cut1_sword'
-            elif (time.time() - player2.attackSchedule <= 0.6):
-                player2.body.image = player2text + 'cut2_body'
-                player2.sword.image = player2text + 'cut2_sword'
-            else:
-                player2.body.image = player2text + 'cut3_body'
-                player2.sword.image = player2text + 'cut3_sword'
-
-        player1.body.draw()
-        player1.sword.draw()
-        player2.body.draw()
-        player2.sword.draw()
+        #更新图像
+        player1.img_update(player1text)
+        player2.img_update(player2text)
 
     if now_page == 'battle_end':
         screen.clear()
         screen.fill((0, 0, 0))
         if player2.hp < eps or player2.balance>200-eps:
-            screen.draw.text('player1 win', (WIDTH / 2, HEIGHT / 2))
+            screen.blit("succeed",(0,0))
         else:
             screen.blit("failed",(0,0))
 
@@ -430,7 +407,7 @@ def attack_defended(u,v):
     else:
         #不完美格挡
         if u.sword.colliderect(v.body):
-            if(t-v.defendeSchedule>0.2):
+            if(t-v.defendeSchedule>0.3):
                 普通防御()
                 v.balance=min(100,v.balance+u.atk)
                 u.attackFlag=True
