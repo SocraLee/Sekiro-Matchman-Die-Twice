@@ -403,7 +403,7 @@ def attack(u, v):
             #除非防御，攻击应打断被攻击方动作
             #
 
-def attack_defended(u, v):
+def attack_defended(u,v):
     if(u.attackFlag==True):return
     t=time.time()
     #弹技能
@@ -449,6 +449,12 @@ def attack_defended(u, v):
                 u.action_last=t+0.5#从当前时间记，额外0.5s硬直
                 u.bounced=t
                 v.defenseFlag=2
+
+def special_attack(u,v):
+    pass
+
+def special_defended(u,v):
+    pass
 
 def update():
     global now_page, now_pressed_button
