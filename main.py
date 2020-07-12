@@ -157,7 +157,7 @@ class Player(object):
         self.skillMove=False#技能是否已经完成突进
         self.defenseFlag=0
         self.skillChoice=""
-        self.skill=["superCut","Immor","dragonSlash"]
+        self.skill=["superCut","Immor","dragonSlash"]#
         # 在xy方向上的速度
         self.vx = 0
         self.vy = 0
@@ -203,14 +203,16 @@ class Player(object):
         t=time.time()
         if(self.type=='enemy'):
             if t - self.action_last > ActionGap and self.attackSchedule<0 and self.skillSchedule<0 and 'atk' in action and t-self.bounced>=BounceTime:
-                if(self.anger>13):
+                if(self.anger>10 or (difficulty=='Hard' and self.anger>6)):
                     self.anger=0
                     self.skillSchedule=time.time()
                     self.action_last=time.time()
                     self.skillFlag=False
                     self.skillMove=False
                     self.skillChoice=random.choice(self.skill)
-                    if(self.skillChoice=='dragonSlash'):一心()
+                    #拍视频展示不同技能用
+                    #self.skill.remove(self.skillChoice)
+                    if(self.skillChoice=='dragonSlash'):一心()#英文命名反了，将错就错吧XD反正没人知道
                     elif(self.skillChoice=='Immor'):
                         不死斩()
                         self.skillMove=True
@@ -291,11 +293,11 @@ class Player(object):
                     self.body.image=text+'attack1'
                     self.sword.image=text+'attack1'
                 elif(temp<1.6):
-                    self.body.image=text+'attack2'
-                    self.sword.image=text+'attack2'
+                    self.body.image=text+'attack2_body'
+                    self.sword.image=text+'attack2_sword'
                 elif(temp<1.8):
-                    self.body.image=text+'attack3'
-                    self.sword.image=text+'attack3'
+                    self.body.image=text+'attack2_body'
+                    self.sword.image=text+'attack2_sword'
                 else:
                     self.body.image=text+'attack4'
                     self.sword.image=text+'attack4'
