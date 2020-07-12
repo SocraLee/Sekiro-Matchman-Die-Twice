@@ -17,8 +17,8 @@ def 普通防御():
     sounds.普通防御.play()
 def 受伤():
     sounds.受伤.play()
-def 完美弹反():
-    sounds.完美弹反.play()
+def 完美弹反(n=0):
+    sounds.完美弹反.play(n)
 def 一心():
     sounds.一心.play()
 
@@ -276,6 +276,7 @@ class Player(object):
             if (time.time() - self.bounced > BounceTime):
                 self.bounced = -10
 
+    #实际上，仅仅对普攻进行的sword和body分离是有意义的，但为了更好的判定，还是整体上进行了分离
     def img_update(self,text):
         if (self.bounced > 0 and time.time() - self.bounced < BounceTime):
             self.body.image = text + 'bounce_body'
@@ -441,8 +442,12 @@ def draw():
             else:player2.body.image='player2/player2rightfalldown'
             player2.body.draw()
             player1.body.draw()
+
         else:
             screen.blit("failed",(0,0))
+            if(bgmflag==True):
+                sounds.嘲讽.play()
+                bgmflag=False
 
     
     for i, j in button[now_page].items():
@@ -487,7 +492,9 @@ def attack_defended(u,v):
             v.defenseFlag=2
 
 def special_attack(u,v,text):
+    #是否要进行判定
     if (u.skillFlag == True): return
+    #是否要进行突进
     if(u.skillMove==False):
         u.skillMove==True
         delta=u.body.left-v.body.left
@@ -512,7 +519,9 @@ def special_attack(u,v,text):
 
 def special_defended(u,v,text):
     global ENEMYbalance,ENEMYhp,ENEMYattack
+    #是否还要判定
     if (u.skillFlag == True): return
+    #是否要突进
     if(u.skillMove==False):
         u.skillMove==True
         delta=u.body.left-v.body.left
@@ -527,7 +536,6 @@ def special_defended(u,v,text):
     # 不完美格挡
     if u.sword.colliderect(v.body)or u.body.colliderect(v.body):
         if (t - v.defendeSchedule > 0.15):
-            普通防御()
             普通防御()
             if(v.type=='player'): v.balance = min(100, v.balance + u.atk*2)
             else:v.balance = min(ENEMYbalance, v.balance + u.atk*2)
@@ -549,8 +557,8 @@ def special_defended(u,v,text):
                 else:
                     v.hp = max(0, v.hp - 2*u.atk)
                 return
-            完美弹反()
-            完美弹反()
+            #产生两次弹反音效
+            完美弹反(1)
             if (u.type == 'player'):
                 u.balance = min(u.balance + u.atk, 100)
             else:
@@ -578,6 +586,7 @@ def update():
 
         t=time.time()
 
+        #标记左右，用于技能动画
         player1text=''
         player2text=''
         if(player1.body.left<=player2.body.left):
@@ -586,7 +595,7 @@ def update():
         else:
             player1text='player1/player1right'
             player2text='player2/player2left'
-
+        #判定普攻
         if player1.is_attacking() and not player2.is_defending():
             if(player1.attackSchedule>0):
                 if(time.time()-player1.attackSchedule>=2*AttackUpdate):
@@ -601,7 +610,7 @@ def update():
             elif(player1.skillSchedule>0):
                 if(time.time()-player1.skillSchedule>=SkillJudgeTime):
                     special_defended(player1,player2,player1text)
-
+        #判定技能
         if player2.is_attacking() and not player1.is_defending():
             if(player2.attackSchedule>0):
                 if(time.time()-player2.attackSchedule>=2*AttackUpdate):
@@ -618,10 +627,12 @@ def update():
                     special_defended(player2,player1,player2text)
 
         if player1.hp < eps or player2.hp < eps or player1.balance>100-eps or player2.balance>ENEMYbalance-eps:
+            bgmflag = True
             now_page = 'battle_end'
 
     if now_page == 'battle_end':
         if now_pressed_button == 'Back':
+            bgmflag = True
             now_page = 'start'
             now_pressed_button = None
 
