@@ -35,8 +35,6 @@ SkillJudgeTime=1.5
 SkillPeriod=2
 BounceTime=0.6
 
-SYS = platform.system().lower()
-
 bgmflag=True
 eps = 1e-6
 
@@ -368,24 +366,14 @@ def draw():
         screen.clear()
         screen.blit("start",(0,0))
         if(bgmflag):
-            if SYS[:3] == 'win':
-                #sounds.startbgm.play()
-                music.play("startbgm")
-
-            else:
-               #sounds.startbgm.play()
-                music.play("startbgm")
-
+            music.play("startbgm")
             bgmflag=False
 
     if now_page == 'battle':
         if(bgmflag):
             music.stop()
             if(difficulty=="Hard"):
-                if SYS[:3] == 'win':
-                    music.play("isschinbgm.mp3")
-                else:
-                    music.play("isschinbgm.mp3")
+                music.play("isschinbgm.mp3")
             else:
                 music.play("genichirobgm.mp3")
             bgmflag=False
