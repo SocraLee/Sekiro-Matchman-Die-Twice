@@ -2,7 +2,6 @@
 import pgzrun
 import time
 import random
-import platform
 
 
 def 不死斩():
@@ -155,7 +154,7 @@ class Player(object):
         self.skillMove=False#技能是否已经完成突进
         self.defenseFlag=0
         self.skillChoice=""
-        self.skill=["superCut","Immor","dragonSlash"]#
+        self.skill=["superCut","Immor","dragonSlash"]
         # 在xy方向上的速度
         self.vx = 0
         self.vy = 0
