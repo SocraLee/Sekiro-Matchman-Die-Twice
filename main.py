@@ -129,7 +129,9 @@ class Player(object):
             self.sword = Actor('right_sword')
 
             if(difficulty=='Hard'):
-                pass
+                ENEMYhp = 200
+                ENEMYbalance = 200
+                ENEMYattack = 30
             elif(difficulty=='Normal'):
                 ENEMYhp=150
                 ENEMYbalance=150
@@ -386,7 +388,7 @@ def draw():
             bgmflag=False
         screen.clear()
         if(difficulty=='Hard'):screen.blit("pku",(0,0))
-        else:screen.fill((255,255,255))#白色背景，适用于黑色火柴人
+        else:screen.blit("bg",(0,0))#白色背景，适用于黑色火柴人
 
 
         #玩家血条
