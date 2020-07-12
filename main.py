@@ -564,7 +564,7 @@ def special_defended(u,v,text):
             if (u.type == 'player'):
                 u.balance = min(u.balance + u.atk, 100)
             else:
-                u.balance = min(u.balance + u.atk * 2, ENEMYbalance)
+                u.balance = min(u.balance + min(u.atk * 2,45), ENEMYbalance)
                 u.anger += 0
             u.skillFlag = True
             u.action_last = t + 1  # 从当前时间记，额外1s硬直
