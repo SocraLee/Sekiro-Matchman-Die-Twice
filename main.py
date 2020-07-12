@@ -199,24 +199,51 @@ class Player(object):
         self.sword.left = max(self.sword.left, 0)
 
         t=time.time()
-        if t - self.action_last > ActionGap and self.attackSchedule<0 and self.skillSchedule<0 and 'atk' in action and t-self.bounced>=BounceTime:
-            if(self.type=='enemy' and self.anger>13):
-                self.anger=0
-                self.skillSchedule=time.time()
-                self.action_last=time.time()
-                self.skillFlag=False
-                self.skillMove=False
-                self.skillChoice=random.choice(self.skill)
-                if(self.skillChoice=='dragonSlash'):一心()
-                elif(self.skillChoice=='Immor'):
-                    不死斩()
-                    self.skillMove=True
-                elif(self.skillChoice=='superCut'): 龙闪()
+        if(self.type=='enemy'):
+            if t - self.action_last > ActionGap and self.attackSchedule<0 and self.skillSchedule<0 and 'atk' in action and t-self.bounced>=BounceTime:
+                if(self.anger>13):
+                    self.anger=0
+                    self.skillSchedule=time.time()
+                    self.action_last=time.time()
+                    self.skillFlag=False
+                    self.skillMove=False
+                    self.skillChoice=random.choice(self.skill)
+                    if(self.skillChoice=='dragonSlash'):一心()
+                    elif(self.skillChoice=='Immor'):
+                        不死斩()
+                        self.skillMove=True
+                    elif(self.skillChoice=='superCut'): 龙闪()
 
-            else:
-                self.attackSchedule=time.time()
-                self.action_last=time.time()
-                self.attackFlag=False
+                else:
+                    self.attackSchedule=time.time()
+                    self.action_last=time.time()
+                    self.attackFlag=False
+        elif(self.type=='player'):
+            if t - self.action_last > ActionGap and self.attackSchedule < 0 and self.skillSchedule < 0 and t - self.bounced >= BounceTime:
+                if ('Immor' in action or "dragonSlash" in action or "superCut"in action):
+                    self.anger = 0
+                    self.skillSchedule = time.time()
+                    self.action_last = time.time()
+                    self.skillFlag = False
+                    self.skillMove = False
+                    #发动第一个按下的技能
+                    for skill in action:
+                        if (skill=='Immor' or skill== "dragonSlash" or skill=="superCut"):
+                            self.skillChoice=skill
+                            break
+                    if (self.skillChoice == 'dragonSlash'):
+                        一心()
+                    elif (self.skillChoice == 'Immor'):
+                        不死斩()
+                        self.skillMove = True
+                    elif (self.skillChoice == 'superCut'):
+                        龙闪()
+
+                elif('atk'in action):
+                    self.attackSchedule = time.time()
+                    self.action_last = time.time()
+                    self.attackFlag = False
+
 
         if t - self.action_last > ActionGap and self.defendeSchedule<0 and 'def' in action and t-self.bounced>=BounceTime:
             self.defendeSchedule=time.time()
@@ -349,11 +376,13 @@ def draw():
     if now_page == 'battle':
         if(bgmflag):
             music.stop()
-            if SYS[:3] == 'win':
-                music.play("isschinbgm.mp3")
+            if(difficulty=="Hard"):
+                if SYS[:3] == 'win':
+                    music.play("isschinbgm.mp3")
+                else:
+                    music.play("isschinbgm.mp3")
             else:
-                music.play("isschinbgm.mp3")
-            #music.play()
+                music.play("genichirobgm.mp3")
             bgmflag=False
         screen.clear()
         if(difficulty=='Hard'):screen.blit("pku",(0,0))
@@ -403,12 +432,11 @@ def draw():
     if now_page == 'battle_end':
         screen.clear()
         screen.fill((0, 0, 0))
-        if player2.hp < eps or player2.balance>200-eps:
+        if player2.hp < eps or player2.balance>ENEMYbalance-eps:
             screen.blit("succeed",(0,0))
             player1.body.image='player1/player1leftstand'
             if(difficulty=='Hard'):player2.body.image='player2_cb/player2rightfalldown'
             else:player2.body.image='player2/player2rightfalldown'
-            print(difficulty)
             player2.body.draw()
             player1.body.draw()
         else:
@@ -441,7 +469,7 @@ def attack_defended(u,v):
             if(v.type=='player'):v.balance=min(100,v.balance+u.atk)
             else:v.balance=min(ENEMYbalance,v.balance+u.atk)
             u.attackFlag=True
-            v.anger+=3
+            v.anger+=4
             v.defenseFlag=1
     #完美格挡
         else:
@@ -469,11 +497,13 @@ def special_attack(u,v,text):
             u.sword.left-=max(delta,-20)+3
         u.img_update(text)
     if u.sword.colliderect(v.body)or u.body.colliderect(v.body):
-        v.hp = max(v.hp - 2*u.atk, 0)
+
         if (v.type == 'player'):
             v.balance = min(v.balance + u.atk, 100)
+            v.hp = max(v.hp - 2 * u.atk, 0)
         else:
-            v.balance = min(v.balance + u.atk * 0.6, ENEMYbalance)
+            v.balance = min(v.balance + u.atk * 5, ENEMYbalance)
+            v.hp = max(v.hp - 5 * u.atk, 0)
             v.anger += 3
         受伤()
         u.skillFlag = True
